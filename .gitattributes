@@ -1,0 +1,23 @@
+# Exclude files from Package Control distribution
+# These files remain in the repository but won't be installed by users
+
+# Images and screenshots
+images/ export-ignore
+screenshots/ export-ignore
+*.png export-ignore
+*.jpg export-ignore
+*.gif export-ignore
+
+# Demo and test files
+demo-configs/ export-ignore
+
+# Documentation that's not needed for end users
+PUBLISHING_GUIDE.md export-ignore
+
+# Development files
+.gitignore export-ignore
+.gitattributes export-ignore
+
+# Sublime Text project files
+*.sublime-project export-ignore
+*.sublime-workspace export-ignore
