@@ -1,0 +1,128 @@
+!
+! Interface Configuration Demo
+! Showcasing interface types, IP addressing, and VLAN configurations
+!
+
+hostname CORE-SW-01
+
+CORE-SW-01>terminal monitor 
+CORE-SW-01>enable
+CORE-SW-01#show interface GigabitEthernet0/3/3
+
+! Management Interface
+interface Management1
+ description Management Interface - Out of Band
+ ip address 10.0.0.1 255.255.255.0
+ no shutdown
+
+! Switchport Configuration
+interface GigabitEthernet0/10
+ description Access Port - VLAN 10
+ switchport mode access
+ switchport access vlan 10
+ spanning-tree portfast
+ no shutdown
+
+interface GigabitEthernet0/11
+ description Trunk Port to Distribution
+ switchport mode trunk
+ switchport trunk native vlan 999
+ switchport trunk allowed vlan 10,20,30,40
+ no shutdown
+ 
+! Layer 3 Interfaces with Various Types
+interface GigabitEthernet0/1
+ description Uplink to Distribution Layer
+ ip address 192.168.1.1 255.255.255.252
+ no shutdown
+
+interface TenGigabitEthernet1/1/1
+ description 10G Fiber Connection to Core
+ ip address 10.10.10.1 255.255.255.252
+ no shutdown
+
+interface FortyGigabitEthernet1/0/1
+ description 40G Uplink to Data Center
+ ip address 172.16.0.1/30
+ no shutdown
+
+!
+! Loopback Interfaces
+!
+interface Loopback0
+ description Router ID for OSPF
+ ip address 1.1.1.1 255.255.255.255
+
+interface Loopback100
+ description BGP Peering Address
+ ip address 10.255.255.1 255.255.255.255
+
+!
+! Port-Channel Configuration
+!
+interface Port-Channel1
+ description Etherchannel to Access Switch
+ switchport mode trunk
+ switchport trunk allowed vlan 10,20,30,100-200
+ no shutdown
+
+interface GigabitEthernet0/2
+ description Member of Port-Channel1
+ channel-group 1 mode active
+ no shutdown
+
+interface GigabitEthernet0/3
+ description Member of Port-Channel1
+ channel-group 1 mode active
+ no shutdown
+
+!
+! VLAN Interfaces (SVIs)
+!
+interface Vlan10
+ description Management VLAN
+ ip address 10.10.10.1 255.255.255.0
+ no shutdown
+
+interface Vlan20
+ description Voice VLAN
+ ip address 10.10.20.1 255.255.255.0
+ no shutdown
+
+interface Vlan100
+ description Data VLAN
+ ip address 10.10.100.1 255.255.255.0
+ no shutdown
+
+!
+! Tunnel Interface
+!
+interface Tunnel0
+ description GRE Tunnel to Remote Site
+ ip address 172.31.1.1 255.255.255.252
+ tunnel source GigabitEthernet0/1
+ tunnel destination 203.0.113.50
+
+!
+! IPv6 Configuration
+!
+interface GigabitEthernet0/5
+ description IPv6 Dual Stack Interface
+ ip address 192.168.5.1 255.255.255.0
+ ipv6 address 2001:db8:acad::1/64
+ ipv6 address fe80::1 link-local
+ no shutdown
+
+!
+
+
+!
+! Disabled Interfaces
+!
+interface GigabitEthernet0/24
+ description Unused Port - Administratively Down
+ shutdown
+
+!
+! End of Configuration
+!

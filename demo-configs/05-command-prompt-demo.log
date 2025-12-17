@@ -1,0 +1,137 @@
+!
+! Command Prompt Hostname Demo
+! Showcasing various prompt formats with hostnames
+!
+
+! User Exec Mode (>) - Limited privileges
+Router>
+Router>show version
+Router>enable
+
+! Privileged Exec Mode (#) - Full access
+Router#
+Router#show running-config
+Router#configure terminal
+
+! Configuration Mode with Context
+Router(config)#
+Router(config)#hostname CORE-SW-01
+CORE-SW-01(config)#
+
+! Interface Configuration Mode
+CORE-SW-01(config)#interface GigabitEthernet0/1
+CORE-SW-01(config-if)#ip address 192.168.1.1 255.255.255.0
+CORE-SW-01(config-if)#description Uplink to Distribution
+CORE-SW-01(config-if)#no shutdown
+CORE-SW-01(config-if)#exit
+
+! VLAN Configuration Mode
+CORE-SW-01(config)#interface Vlan10
+CORE-SW-01(config-if)#ip address 10.10.10.1 255.255.255.0
+CORE-SW-01(config-if)#exit
+
+! Router Configuration Mode
+CORE-SW-01(config)#router bgp 65000
+CORE-SW-01(config-router)#bgp router-id 10.0.0.1
+CORE-SW-01(config-router)#neighbor 10.0.1.1 remote-as 65000
+CORE-SW-01(config-router)#exit
+
+! Line Configuration Mode
+CORE-SW-01(config)#line vty 0 4
+CORE-SW-01(config-line)#password cisco123
+CORE-SW-01(config-line)#login
+CORE-SW-01(config-line)#exit
+
+! Various Hostname Formats
+EDGE-RTR-01#show ip interface brief
+DIST-SW-02#show interfaces status
+ACCESS-SW-03#show vlan brief
+
+DATACENTER-CORE-01#show ip bgp summary
+BRANCH-RTR-NYC-01#show ip route
+CAMPUS-SW-BLDG5-FL2#show mac address-table
+
+! Hostnames with Numbers and Hyphens
+SW-3750-STACK-01#show switch
+RTR-ASR1K-WAN-01#show platform
+FW-ASA-DMZ-01#show conn
+
+! Show Commands Output
+CORE-SW-01#show running-config
+Building configuration...
+
+Current configuration : 4521 bytes
+!
+version 15.2
+service timestamps debug datetime msec
+service timestamps log datetime msec
+no service password-encryption
+!
+hostname CORE-SW-01
+!
+interface GigabitEthernet0/1
+ description Uplink to Distribution Layer
+ ip address 192.168.1.1 255.255.255.252
+ no shutdown
+!
+
+CORE-SW-01#show ip interface brief
+Interface              IP-Address      OK? Method Status                Protocol
+GigabitEthernet0/1     192.168.1.1     YES manual up                    up      
+GigabitEthernet0/2     unassigned      YES unset  administratively down down    
+Vlan10                 10.10.10.1      YES manual up                    up      
+Loopback0              1.1.1.1         YES manual up                    up      
+
+CORE-SW-01#show version
+Cisco IOS Software, C3750 Software (C3750-IPSERVICESK9-M), Version 15.2(4)E8
+Technical Support: http://www.cisco.com/techsupport
+Copyright (c) 1986-2019 by Cisco Systems, Inc.
+
+CORE-SW-01#ping 192.168.1.2
+Type escape sequence to abort.
+Sending 5, 100-byte ICMP Echos to 192.168.1.2, timeout is 2 seconds:
+!!!!!
+Success rate is 100 percent (5/5), round-trip min/avg/max = 1/2/4 ms
+
+! Troubleshooting Commands
+CORE-SW-01#show interfaces GigabitEthernet0/1
+CORE-SW-01#show ip route
+CORE-SW-01#show arp
+CORE-SW-01#show mac address-table
+
+! Debug Mode
+CORE-SW-01#debug ip icmp
+CORE-SW-01#terminal monitor
+CORE-SW-01#undebug all
+
+! Return to User Mode
+CORE-SW-01#exit
+CORE-SW-01>
+
+! Different Configuration Contexts
+EDGE-RTR-01(config)#crypto isakmp policy 10
+EDGE-RTR-01(config-isakmp)#encryption aes 256
+EDGE-RTR-01(config-isakmp)#hash sha256
+EDGE-RTR-01(config-isakmp)#exit
+
+EDGE-RTR-01(config)#class-map match-any VOICE
+EDGE-RTR-01(config-cmap)#match dscp ef
+EDGE-RTR-01(config-cmap)#exit
+
+EDGE-RTR-01(config)#policy-map WAN-EDGE
+EDGE-RTR-01(config-pmap)#class VOICE
+EDGE-RTR-01(config-pmap-c)#priority percent 30
+EDGE-RTR-01(config-pmap-c)#exit
+
+! VRF Configuration Context
+EDGE-RTR-01(config)#ip vrf CUSTOMER-A
+EDGE-RTR-01(config-vrf)#rd 65000:100
+EDGE-RTR-01(config-vrf)#route-target export 65000:100
+EDGE-RTR-01(config-vrf)#route-target import 65000:100
+EDGE-RTR-01(config-vrf)#exit
+
+! End of Demo
+EDGE-RTR-01#write memory
+Building configuration...
+[OK]
+EDGE-RTR-01#

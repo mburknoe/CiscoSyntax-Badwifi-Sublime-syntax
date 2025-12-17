@@ -1,0 +1,167 @@
+!
+! IP Addressing and MAC Address Demo
+! Showcasing IPv4, IPv6, CIDR notation, and MAC address highlighting
+!
+
+hostname ADDRESS-DEMO-01
+
+!
+! IPv4 Addressing - Standard Subnet Mask Format
+!
+interface GigabitEthernet0/1
+ description IPv4 Standard Format
+ ip address 192.168.1.1 255.255.255.0
+ no shutdown
+
+interface GigabitEthernet0/2
+ description IPv4 Point-to-Point Link
+ ip address 10.0.0.1 255.255.255.252
+ no shutdown
+
+interface GigabitEthernet0/3
+ description IPv4 /31 Network
+ ip address 172.16.0.1 255.255.255.254
+ no shutdown
+
+!
+! IPv4 CIDR Notation
+!
+ip route 0.0.0.0/0 203.0.113.1
+ip route 10.0.0.0/8 Null0
+ip route 172.16.0.0/16 192.168.1.254
+ip route 192.168.100.0/24 GigabitEthernet0/1
+ip route 203.0.113.0/30 10.0.0.2
+
+!
+! IPv6 Addressing - Full Format
+!
+interface GigabitEthernet0/10
+ description IPv6 Full Format
+ ipv6 address 2001:0db8:0000:0001:0000:0000:0000:0001/64
+ ipv6 address fe80:0000:0000:0000:0000:0000:0000:0001 link-local
+ no shutdown
+
+!
+! IPv6 Addressing - Condensed Format (Recommended)
+!
+interface GigabitEthernet0/11
+ description IPv6 Condensed Format
+ ipv6 address 2001:db8:acad:1::1/64
+ ipv6 address 2001:db8:cafe::1/64
+ ipv6 address fe80::1 link-local
+ no shutdown
+
+interface GigabitEthernet0/12
+ description IPv6 Multiple Addresses
+ ipv6 address 2001:db8:1234:5678::1/64
+ ipv6 address 2001:db8:abcd:ef01::1/64
+ ipv6 address fd00:1234:5678::1/64
+ ipv6 address fe80::c800:1aff:fe9e:fa58 link-local
+ no shutdown
+
+!
+! IPv6 Dual Stack Configuration
+!
+interface Vlan100
+ description Dual Stack VLAN
+ ip address 10.100.100.1 255.255.255.0
+ ipv6 address 2001:db8:100::1/64
+ ipv6 address fe80::1 link-local
+ no shutdown
+
+!
+! IPv6 Routing
+!
+ipv6 route 2001:db8::/32 2001:db8:1::1
+ipv6 route ::/0 2001:db8:acad::1
+ipv6 route fd00::/8 Null0
+
+!
+! MAC Address Formats
+!
+mac address-table static 0050.7966.6800 vlan 10 interface GigabitEthernet0/1
+mac address-table static 00:50:79:66:68:01 vlan 20 interface GigabitEthernet0/2
+mac address-table static 00-50-79-66-68-02 vlan 30 interface GigabitEthernet0/3
+
+!
+! ARP Entries (showing various IP and MAC combinations)
+!
+arp 192.168.1.10 0050.7966.6810 arpa
+arp 192.168.1.11 00:50:79:66:68:11 arpa
+arp 192.168.1.12 00-50-79-66-68-12 arpa
+arp 10.0.0.100 aabb.cc00.1122 arpa
+arp 10.0.0.101 aa:bb:cc:dd:ee:ff arpa
+
+!
+! IPv6 Neighbor Discovery
+!
+ipv6 neighbor 2001:db8:acad::10 GigabitEthernet0/10 0050.7966.6820
+ipv6 neighbor fe80::c801:1aff:fe9e:fa60 GigabitEthernet0/11 00:50:79:66:68:21
+
+!
+! Mixed Address Configurations
+!
+interface Loopback0
+ description Router ID and Management
+ ip address 1.1.1.1 255.255.255.255
+ ipv6 address 2001:db8:ffff::1/128
+
+interface Loopback100
+ description BGP Peering
+ ip address 10.255.255.1 255.255.255.255
+ ipv6 address 2001:db8:beef::1/128
+
+!
+! Special IPv4 Addresses
+!
+interface Null0
+ description Blackhole Interface
+ no ip unreachables
+
+ip route 192.0.2.0 255.255.255.0 Null0
+ip route 198.51.100.0 255.255.255.0 Null0
+ip route 203.0.113.0 255.255.255.0 Null0
+
+!
+! DHCP Pool with Various Addresses
+!
+ip dhcp pool VLAN10-POOL
+ network 10.10.10.0 255.255.255.0
+ default-router 10.10.10.1
+ dns-server 8.8.8.8 8.8.4.4
+ domain-name example.com
+ lease 7
+
+ip dhcp pool VLAN20-POOL
+ network 10.20.20.0/24
+ default-router 10.20.20.1
+ dns-server 1.1.1.1 1.0.0.1
+
+!
+! NAT Configuration with Multiple Addresses
+!
+ip nat inside source static 10.1.1.10 203.0.113.10
+ip nat inside source static 10.1.1.11 203.0.113.11
+ip nat inside source static tcp 10.1.1.20 80 203.0.113.20 80
+ip nat inside source static tcp 10.1.1.20 443 203.0.113.20 443
+
+ip nat pool PUBLIC-POOL 203.0.113.100 203.0.113.200 netmask 255.255.255.0
+ip nat inside source list 1 pool PUBLIC-POOL overload
+
+!
+! Access List with Various IP Addresses
+!
+ip access-list extended COMPLEX-ACL
+ permit ip 10.0.0.0 0.255.255.255 any
+ permit ip 172.16.0.0 0.15.255.255 any
+ permit ip 192.168.0.0 0.0.255.255 any
+ permit ip host 8.8.8.8 any
+ permit ip host 1.1.1.1 any
+ deny ip 127.0.0.0 0.255.255.255 any
+ deny ip 169.254.0.0 0.0.255.255 any
+ deny ip 224.0.0.0 31.255.255.255 any
+ permit ip any any
+
+!
+! End of Configuration
+!

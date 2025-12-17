@@ -13,12 +13,12 @@ contexts:
   main:
     # The main context is the initial starting point of our syntax.
     # Include other contexts from here (or specify them directly).
+    - include: 'command_hostname'
+    - include: 'comment'
     - include: 'keywords'
     - include: 'acl'
     - include: 'address'
     - include: 'bgp'
-    - include: 'command_hostname'
-    - include: 'comment'
     - include: 'crypto'
     - include: 'group'
     - include: 'interface'
@@ -45,7 +45,7 @@ contexts:
 
     - match: '\b(-)?[0-9.]+\b'
       scope: constant.numeric.example-c
-  
+
     - match: 'interface [A-Za-z0-9/.]+'
       scope: constant.numeric.example-c
 
@@ -55,10 +55,10 @@ contexts:
     - match: router bgp \d+
       scope: keyword.control.bgp.cisco
 
-  acl: 
+  acl:
     - match: (?<=access-group\s)((name)\s)?(\S+)\b
       scope: entity.name.tag.acl.access-group.name.cisco
-    
+
     - match: (?<=access-list\s)((extended|standard)\s)?(\S+)\b
       scope: entity.name.tag.acl.access-list.name.cisco
 
@@ -88,18 +88,28 @@ contexts:
       scope: entity.name.tag.bgp.peer-policy.name.cisco
     - match: (?<=peer-session\s)(\S+)\b
       scope: entity.name.tag.bgp.peer-session.name.cisco
-    - match: ^(?!\s)[0-9a-zA-Z\-]+(\(.*\))?#
-      scope: meta.function-call.command_hostname.user-mode.cisco
-    - match: ^(?!\s)[0-9a-zA-Z\-]+(\(.*\))?>
-      scope: meta.function-call.command_hostname.privileged-mode.cisco
+
+  command_hostname:
+    # Match command prompt hostname followed by # (privileged exec mode)
+    - match: '^([0-9a-zA-Z][0-9a-zA-Z\-_]*)(\([^)]*\))?(#)'
+      captures:
+        1: entity.name.tag.prompt.hostname.cisco
+        2: entity.name.tag.prompt.context.cisco
+        3: keyword.operator.prompt.privileged.cisco
+    # Match command prompt hostname followed by > (user exec mode)
+    - match: '^([0-9a-zA-Z][0-9a-zA-Z\-_]*)(\([^)]*\))?(>)'
+      captures:
+        1: entity.name.tag.prompt.hostname.cisco
+        2: entity.name.tag.prompt.context.cisco
+        3: keyword.operator.prompt.user.cisco
+
   comment:
-    - match: ^\s*[!#].*
-      scope: comment.line.config.cisco
+    # Match lines starting with ! (Cisco config comment)
+    - match: '^\s*!'
+      scope: punctuation.definition.comment.cisco
       push:
-        # This is an anonymous context push for brevity.
-        - meta_scope: comment.line.config.cisco
-        - match: $\n?
-        # - match: '!'
+        - meta_scope: comment.line.exclamation.cisco
+        - match: $
           pop: true
   crypto:
     - match: (?<=crypto\smap\s)(\S+)\b

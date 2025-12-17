@@ -1,0 +1,159 @@
+!
+! BGP and VRF Configuration Demo
+! Showcasing routing protocols, VRF instances, and BGP peering
+!
+
+hostname EDGE-RTR-01
+
+!
+! VRF Definitions
+!
+ip vrf CUSTOMER-A
+ rd 65000:100
+ route-target export 65000:100
+ route-target import 65000:100
+ description Customer A Private Network
+
+ip vrf CUSTOMER-B
+ rd 65000:200
+ route-target export 65000:200
+ route-target import 65000:200
+ description Customer B Private Network
+
+ip vrf MANAGEMENT
+ rd 65000:999
+ route-target export 65000:999
+ route-target import 65000:999
+ description Management VRF
+
+!
+! BGP Configuration
+!
+router bgp 65000
+ bgp router-id 10.0.0.1
+ bgp log-neighbor-changes
+ no bgp default ipv4-unicast
+ 
+ !
+ ! IPv4 Unicast Address Family
+ !
+ address-family ipv4
+  network 10.0.0.0 mask 255.255.255.0
+  network 192.168.100.0 mask 255.255.255.0
+  redistribute connected
+  redistribute static
+ exit-address-family
+ 
+ !
+ ! IPv6 Unicast Address Family
+ !
+ address-family ipv6
+  network 2001:db8::/32
+  redistribute connected
+ exit-address-family
+ 
+ !
+ ! Neighbor Configurations
+ !
+ neighbor IBGP-PEERS peer-group
+ neighbor IBGP-PEERS remote-as 65000
+ neighbor IBGP-PEERS update-source Loopback0
+ neighbor IBGP-PEERS next-hop-self
+ 
+ neighbor EBGP-PEERS peer-group
+ neighbor EBGP-PEERS remote-as 65001
+ neighbor EBGP-PEERS ebgp-multihop 2
+ 
+ neighbor 10.0.1.1 peer-group IBGP-PEERS
+ neighbor 10.0.1.1 description Core Router 1
+ 
+ neighbor 10.0.1.2 peer-group IBGP-PEERS
+ neighbor 10.0.1.2 description Core Router 2
+ 
+ neighbor 203.0.113.1 peer-group EBGP-PEERS
+ neighbor 203.0.113.1 description ISP Provider A
+ 
+ neighbor 203.0.113.5 peer-group EBGP-PEERS
+ neighbor 203.0.113.5 description ISP Provider B
+ 
+ neighbor 2001:db8::1 remote-as 65000
+ neighbor 2001:db8::1 description IPv6 Peer
+ neighbor 2001:db8::1 update-source Loopback0
+ 
+ !
+ ! Address Family Neighbor Activation
+ !
+ address-family ipv4
+  neighbor IBGP-PEERS activate
+  neighbor EBGP-PEERS activate
+  neighbor 10.0.1.1 activate
+  neighbor 10.0.1.2 activate
+  neighbor 203.0.113.1 activate
+  neighbor 203.0.113.5 activate
+  neighbor 203.0.113.5 prefix-list CUSTOMER-IN in
+  neighbor 203.0.113.5 prefix-list CUSTOMER-OUT out
+ exit-address-family
+ 
+ address-family ipv6
+  neighbor 2001:db8::1 activate
+ exit-address-family
+ 
+ !
+ ! VRF Address Families
+ !
+ address-family ipv4 vrf CUSTOMER-A
+  neighbor 172.16.100.1 remote-as 65100
+  neighbor 172.16.100.1 activate
+  neighbor 172.16.100.1 description Customer A Site 1
+  redistribute connected
+ exit-address-family
+ 
+ address-family ipv4 vrf CUSTOMER-B
+  neighbor 172.16.200.1 remote-as 65200
+  neighbor 172.16.200.1 activate
+  neighbor 172.16.200.1 description Customer B Site 1
+  redistribute connected
+ exit-address-family
+
+!
+! Route Maps and Prefix Lists
+!
+ip prefix-list CUSTOMER-IN seq 5 permit 10.0.0.0/8 le 24
+ip prefix-list CUSTOMER-IN seq 10 permit 172.16.0.0/12 le 24
+ip prefix-list CUSTOMER-IN seq 15 deny 0.0.0.0/0 le 32
+
+ip prefix-list CUSTOMER-OUT seq 5 permit 192.168.0.0/16 le 24
+ip prefix-list CUSTOMER-OUT seq 10 deny 0.0.0.0/0 le 32
+
+route-map SET-LOCAL-PREF permit 10
+ description Increase local preference for preferred path
+ set local-preference 150
+
+route-map SET-MED permit 10
+ description Set MED for traffic engineering
+ set metric 100
+
+!
+! Interface VRF Assignments
+!
+interface GigabitEthernet0/1
+ description Customer A Connection
+ vrf forwarding CUSTOMER-A
+ ip address 172.16.100.254 255.255.255.0
+ no shutdown
+
+interface GigabitEthernet0/2
+ description Customer B Connection
+ vrf forwarding CUSTOMER-B
+ ip address 172.16.200.254 255.255.255.0
+ no shutdown
+
+interface GigabitEthernet0/3
+ description Management Interface
+ vrf forwarding MANAGEMENT
+ ip address 10.255.255.1 255.255.255.0
+ no shutdown
+
+!
+! End of Configuration
+!

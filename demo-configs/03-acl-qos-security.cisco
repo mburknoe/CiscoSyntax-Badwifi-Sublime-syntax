@@ -1,0 +1,192 @@
+!
+! ACL, QoS, and Security Configuration Demo
+! Showcasing access lists, QoS policies, and crypto configurations
+!
+
+hostname SECURITY-RTR-01
+
+!
+! Standard Access Lists
+!
+access-list 10 remark Allow Management Networks
+access-list 10 permit 10.0.0.0 0.0.0.255
+access-list 10 permit 192.168.1.0 0.0.0.255
+access-list 10 deny any
+
+!
+! Extended Access Lists
+!
+ip access-list extended ACL-INTERNET-IN
+ remark Inbound Internet Traffic Policy
+ permit tcp any any established
+ permit tcp any any eq 80
+ permit tcp any any eq 443
+ permit tcp any any eq 22
+ permit icmp any any echo-reply
+ deny ip any 10.0.0.0 0.255.255.255
+ deny ip any 172.16.0.0 0.15.255.255
+ deny ip any 192.168.0.0 0.0.255.255
+ permit ip any any
+
+ip access-list extended ACL-INTERNET-OUT
+ remark Outbound Internet Traffic Policy
+ permit tcp 10.0.0.0 0.0.255.255 any eq 80
+ permit tcp 10.0.0.0 0.0.255.255 any eq 443
+ permit tcp 10.0.0.0 0.0.255.255 any eq 22
+ permit tcp 10.0.0.0 0.0.255.255 any eq 53
+ permit udp 10.0.0.0 0.0.255.255 any eq 53
+ permit icmp 10.0.0.0 0.0.255.255 any
+ deny ip any any
+
+ip access-list extended ACL-BLOCK-SOCIAL-MEDIA
+ remark Block Social Media Sites
+ deny tcp any host 157.240.0.0 0.0.255.255
+ deny tcp any host 31.13.0.0 0.0.255.255
+ permit ip any any
+
+!
+! Named ACL for VoIP Traffic
+!
+ip access-list extended ACL-VOIP
+ remark Allow VoIP Traffic
+ permit udp any any range 16384 32767
+ permit tcp any any eq 5060
+ permit tcp any any eq 5061
+ permit tcp any any range 2000 2002
+
+!
+! QoS Class Maps
+!
+class-map match-any VOICE
+ description Voice Traffic
+ match access-group name ACL-VOIP
+ match dscp ef
+
+class-map match-any VIDEO
+ description Video Conferencing
+ match dscp af41
+ match dscp af42
+
+class-map match-any BUSINESS-CRITICAL
+ description Business Critical Applications
+ match dscp af31
+ match access-group 100
+
+class-map match-all SCAVENGER
+ description Low Priority Traffic
+ match access-group name ACL-BLOCK-SOCIAL-MEDIA
+
+!
+! QoS Policy Maps
+!
+policy-map WAN-EDGE-QOS
+ description QoS Policy for WAN Edge
+ class VOICE
+  priority percent 30
+  set dscp ef
+ class VIDEO
+  bandwidth percent 20
+  set dscp af41
+ class BUSINESS-CRITICAL
+  bandwidth percent 30
+  set dscp af31
+ class SCAVENGER
+  bandwidth percent 5
+  set dscp cs1
+ class class-default
+  bandwidth percent 15
+  fair-queue
+  random-detect
+
+!
+! Crypto Configuration
+!
+crypto isakmp policy 10
+ encr aes 256
+ hash sha256
+ authentication pre-share
+ group 14
+ lifetime 86400
+
+crypto isakmp key SecureKey123! address 203.0.113.100
+
+crypto ipsec transform-set STRONG-ENCRYPTION esp-aes 256 esp-sha256-hmac
+ mode tunnel
+
+crypto ipsec transform-set AES-SHA esp-aes esp-sha-hmac
+ mode tunnel
+
+crypto map SITE-TO-SITE 10 ipsec-isakmp
+ description IPSec Tunnel to Remote Site
+ set peer 203.0.113.100
+ set transform-set STRONG-ENCRYPTION
+ match address ACL-VPN-TRAFFIC
+
+ip access-list extended ACL-VPN-TRAFFIC
+ remark VPN Interesting Traffic
+ permit ip 10.1.0.0 0.0.255.255 10.2.0.0 0.0.255.255
+
+!
+! Interface Security and ACL Application
+!
+interface GigabitEthernet0/0
+ description Outside Interface - Internet Connection
+ ip address 203.0.113.10 255.255.255.252
+ ip access-group ACL-INTERNET-IN in
+ ip access-group ACL-INTERNET-OUT out
+ service-policy output WAN-EDGE-QOS
+ crypto map SITE-TO-SITE
+ no shutdown
+
+interface GigabitEthernet0/1
+ description Inside Interface - Corporate LAN
+ ip address 10.0.1.1 255.255.255.0
+ no shutdown
+
+interface GigabitEthernet0/2
+ description Voice VLAN Interface
+ ip address 10.10.20.1 255.255.255.0
+ service-policy input WAN-EDGE-QOS
+ no shutdown
+
+!
+! Object Groups (for advanced ACLs)
+!
+object-group network WEB-SERVERS
+ description Production Web Servers
+ host 10.0.100.10
+ host 10.0.100.11
+ 10.0.100.0 255.255.255.0
+
+object-group network DB-SERVERS
+ description Database Servers
+ host 10.0.200.10
+ host 10.0.200.11
+
+object-group service WEB-SERVICES
+ description HTTP and HTTPS Services
+ tcp eq 80
+ tcp eq 443
+ tcp eq 8080
+
+!
+! Advanced ACL using Object Groups
+!
+ip access-list extended ACL-WEB-ACCESS
+ remark Allow access to web servers
+ permit tcp any object-group WEB-SERVERS object-group WEB-SERVICES
+ deny tcp any object-group DB-SERVERS
+ permit ip any any
+
+!
+! Security Hardening
+!
+no ip source-route
+no ip proxy-arp
+ip tcp intercept list 100
+service password-encryption
+security passwords min-length 12
+
+!
+! End of Configuration
+!
