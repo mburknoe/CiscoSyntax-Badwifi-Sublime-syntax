@@ -1,0 +1,2 @@
+This updated package replaces the inactive original Cisco syntax highlighter for Sublime Text.
+This updated version provides comprehensive syntax highlighting for interfaces, IP addressing, security, routing, QoS, and more, making Cisco configs easier to read and troubleshoot.

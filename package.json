@@ -1,9 +1,9 @@
 {
-  "name": "CiscoSyntax BadWifi",
+  "name": "Cisco",
   "description": "Comprehensive syntax highlighting for Cisco IOS, NX-OS, and IOS-XE configurations",
   "author": "Michael Burk, CCIE #50207 @ Badwifi.dev",
-  "homepage": "https://github.com/badwifi/CiscoSyntax-Badwifi-Sublime-syntax",
-  "issues": "https://github.com/badwifi/CiscoSyntax-Badwifi-Sublime-syntax/issues",
+  "homepage": "https://github.com/mburknoe/CiscoSyntax-Badwifi-Sublime-syntax",
+  "issues": "https://github.com/mburknoe/CiscoSyntax-Badwifi-Sublime-syntax/issues",
   "license": "MIT",
   "keywords": ["cisco", "ios", "syntax", "highlighting", "network", "configuration"],
   "sublime_text": ">=3000"

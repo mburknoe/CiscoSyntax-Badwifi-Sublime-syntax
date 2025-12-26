@@ -1,12 +1,11 @@
 %YAML 1.2
 ---
-name: CiscoSyntax BadWifi
+name: Cisco
 file_extensions:
   - ios
   - cisco
   - config
   - log
-# - txt
 
 scope: source.cisco
 contexts:
